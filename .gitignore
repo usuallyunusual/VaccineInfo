@@ -1,0 +1,17 @@
+# Python env
+venv/
+
+# Credentials and config files
+/src/emails.yaml
+/src/email_cred.yaml
+
+# testfiles
+/src/sample.html
+/src/last_call.txt
+
+# IDE files
+.idea
+
+#Python cache files
+/src/__pycache__/
+/tests/__pycache__/
