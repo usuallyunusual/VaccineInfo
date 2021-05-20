@@ -1,0 +1,10 @@
+# Python env
+.venv
+
+# Credentials and config files
+/src/emails.yaml
+/src/email_cred.yaml
+
+# testfiles
+/src/sample.html
+/src/last_call.txt
