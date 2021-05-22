@@ -4,10 +4,13 @@ venv/
 # Credentials and config files
 /src/emails.yaml
 /src/email_cred.yaml
+/src/receiver_config.yaml
 
 # testfiles
 /src/sample.html
 /src/last_call.txt
+/src/last_call_covaxin.txt
+/src/last_call_covishield.txt
 
 # IDE files
 .idea
