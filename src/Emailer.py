@@ -3,6 +3,7 @@ import smtplib
 import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import os
 
 import yaml
 
@@ -12,9 +13,10 @@ class Emailer:
     Presentation logic and emailing the receivers is defnied here
     """
 
-    def __init__(self, data, vaccine):
+    def __init__(self, data, vaccine, receiver_emails):
         self.data = json.loads(data)
         self.vaccine = vaccine
+        self.receiver_emails = receiver_emails
 
     def prepare_html(self, data, email, vaccine):
         """
@@ -109,13 +111,12 @@ class Emailer:
             if self.data["updated"] == "no":
                 print("Email not sent")
                 return -1
-        receiver_email = self.get_receiver_emails()
         messages = []
-        for email in receiver_email:
+        for email in self.receiver_emails:
             html = self.prepare_html(self.data, email, self.vaccine)
             message = self.prepare_message(html, email)
             messages.append(message)
-        self.send_email(receiver_email, messages)
+        self.send_email(self.receiver_emails, messages)
 
     def send_email(self, receiver_email, messages):
         """
@@ -135,8 +136,10 @@ class Emailer:
                 # print(sender_email, email, message)
                 server.sendmail(sender_email, email, message.as_string())
 
+
     def get_receiver_emails(self):
         """
+        @ sDEPRECATED
         Retrieves the receiver emails from YAML config
         :return: List of emails
         """
@@ -148,5 +151,5 @@ class Emailer:
         Retrieves the credentials from YAML file
         :return: List of email and pass
         """
-        with open("email_cred.yaml", "r") as email_config:
+        with open(os.path.dirname(os.path.realpath(__file__)) + "/email_cred.yaml", "r") as email_config:
             return yaml.load(email_config.read(), Loader=yaml.FullLoader)

@@ -2,7 +2,8 @@ import json
 
 from FindVaccineCenter import FindVaccineCenter
 from VaccineStats import VaccineStats
-from src.CaseStats import CaseStats
+from CaseStats import CaseStats
+import os
 
 
 class CombinedResponse:
@@ -11,8 +12,8 @@ class CombinedResponse:
     Used to pass info to the presentation logic
     """
 
-    def __init__(self, district_id, vaccine, state):
-        self.district_id = district_id
+    def __init__(self, raw_json_data, vaccine, state):
+        self.raw_json_data = raw_json_data
         self.vaccine = vaccine
         self.state = state
 
@@ -22,18 +23,19 @@ class CombinedResponse:
         :param data: The queried data from API
         :return:
         """
+        last_call_file = os.path.dirname(os.path.realpath(__file__)) + "/last_call_" + self.vaccine.lower() + ".txt"
         try:
-            with open("last_call.txt", 'r') as last_call_data:
+            with open(last_call_file, 'r') as last_call_data:
                 prev_data = json.loads(last_call_data.read())
             if prev_data == data:
                 data["updated"] = "no"
             else:
-                with open("last_call.txt", "w") as last_call_data:
+                with open(last_call_file, "w") as last_call_data:
                     last_call_data.write(json.dumps(data, indent=2))
                     data["updated"] = "yes"
             return data
         except Exception as e:
-            with open("last_call.txt", "w") as last_call_data:
+            with open(last_call_file, "w") as last_call_data:
                 last_call_data.write(json.dumps(data, indent=2))
                 data["updated"] = "yes"
                 return data
@@ -49,12 +51,12 @@ class CombinedResponse:
         tagged_data = self.tag_updated(vaccine_centers)
         return json.dumps(tagged_data, indent=2)
 
-    def get_findvaccinecenter_obj(self, district_id, vaccine):
+    def get_findvaccinecenter_obj(self, raw_json_data, vaccine):
         """
         Returns obj of findVaccineCenter class with parameters supplied
         :return: FindVaccineCenter object
         """
-        return FindVaccineCenter(district_id, vaccine)
+        return FindVaccineCenter(raw_json_data, vaccine)
 
     def get_vaccinestats_obj(self, state):
         """
@@ -75,7 +77,7 @@ class CombinedResponse:
         Calls different API's through interfaces and returns the individual responses
         :return: returns Individual responses
         """
-        findvaccinecenter = self.get_findvaccinecenter_obj(self.district_id, self.vaccine)
+        findvaccinecenter = self.get_findvaccinecenter_obj(self.raw_json_data, self.vaccine)
         centers = findvaccinecenter.get_data()
         if centers == -1:
             return centers

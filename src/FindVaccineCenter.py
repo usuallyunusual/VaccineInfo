@@ -1,7 +1,5 @@
 import json
-from datetime import datetime, date
 
-import requests
 
 
 class FindVaccineCenter:
@@ -9,29 +7,9 @@ class FindVaccineCenter:
     Queries the Cowin API to get required data
     """
 
-    def __init__(self, district_id, vaccine):
-        self.district_id = district_id
+    def __init__(self, raw_json_data,vaccine):
+        self.raw_json_data = raw_json_data
         self.vaccine = vaccine
-
-    def get_json_data(self):
-        """
-        Queries the Cowin API and returns the JSON response.
-        Everything to do with the request params and exception catching is done here
-        :return:
-        """
-        try:
-            response = requests.get("https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict",
-                                    params={"district_id": self.district_id,
-                                            "date": date.today().strftime("%d-%m-%Y")},
-                                    headers={'User-Agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) "
-                                                           "AppleWebKit/537.36 (KHTML, "
-                                                           "like Gecko) Chrome/39.0.2171.95 Safari/537.36"})
-            if response.status_code != 200:
-                raise Exception("Bad Response code: ", response.status_code)
-            return json.loads(response.text)
-        except Exception as e:
-            print(f" Exception: {datetime.now()} : {e}")
-            return -1
 
     def filter_results(self, response):
         """
@@ -71,9 +49,8 @@ class FindVaccineCenter:
         filters the results and returns a json object of filtered results
         :return: Dict (JSON obj) of filtered responses
         """
-        raw_json_data = self.get_json_data()
-        if raw_json_data != -1:
-            filtered_response = self.filter_results(raw_json_data)
+        if self.raw_json_data != -1:
+            filtered_response = self.filter_results(self.raw_json_data)
             return json.dumps(filtered_response, indent=2)
         else:
             return -1
