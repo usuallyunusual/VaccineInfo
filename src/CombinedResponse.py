@@ -17,29 +17,6 @@ class CombinedResponse:
         self.vaccine = vaccine
         self.state = state
 
-    def tag_updated(self, data):
-        """
-        Checks if last query gave same results and tags it "updates":yes or "updated":no
-        :param data: The queried data from API
-        :return:
-        """
-        last_call_file = os.path.dirname(os.path.realpath(__file__)) + "/last_call_" + self.vaccine.lower() + ".txt"
-        try:
-            with open(last_call_file, 'r') as last_call_data:
-                prev_data = json.loads(last_call_data.read())
-            if prev_data == data:
-                data["updated"] = "no"
-            else:
-                with open(last_call_file, "w") as last_call_data:
-                    last_call_data.write(json.dumps(data, indent=2))
-                    data["updated"] = "yes"
-            return data
-        except Exception as e:
-            with open(last_call_file, "w") as last_call_data:
-                last_call_data.write(json.dumps(data, indent=2))
-                data["updated"] = "yes"
-                return data
-
     def get_combined_response(self):
         """
         Combines the responses
@@ -48,8 +25,7 @@ class CombinedResponse:
         [vaccine_centers, vaccine_stats, case_stats] = self.get_individual_responses()
         vaccine_centers["Vaccine_Stats"] = vaccine_stats
         vaccine_centers["Case_Stats"] = case_stats
-        tagged_data = self.tag_updated(vaccine_centers)
-        return json.dumps(tagged_data, indent=2)
+        return json.dumps(vaccine_centers, indent=2)
 
     def get_findvaccinecenter_obj(self, raw_json_data, vaccine):
         """

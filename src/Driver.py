@@ -4,6 +4,8 @@ from CombinedResponse import CombinedResponse
 from Emailer import Emailer
 import os
 from QueryCowin import QueryCowin
+import argparse
+
 
 class Driver:
     """
@@ -13,7 +15,7 @@ class Driver:
     def __init__(self):
         pass
 
-    def run(self):
+    def run(self, force_send):
         """
         Calls everything. Execution starts here
         :return: -1 or 1
@@ -23,7 +25,7 @@ class Driver:
         for vaccine in receiver_config:
             responsecombiner = CombinedResponse(raw_json_data, vaccine, "Karnataka")
             combined_data = responsecombiner.get_combined_response()
-            Emailer(combined_data, vaccine, receiver_config[vaccine]).send_vaccine_info()
+            Emailer(combined_data, vaccine, receiver_config[vaccine], force_send).send_vaccine_info()
 
     def get_script_path(self):
         """
@@ -39,6 +41,13 @@ class Driver:
             return yaml.load(receiver_config.read(), Loader=yaml.FullLoader)
 
 
-
 if __name__ == "__main__":
-    Driver().run()
+    # TODO : Update the description
+    parser = argparse.ArgumentParser(description='Send email to an email list')
+    parser.add_argument('-f', '--force-send', help="Force send the email irrespective of the same API response",
+                        action='store_true')
+    args = parser.parse_args()
+    if args.force_send:
+        Driver().run(True)
+    else:
+        Driver().run(False)

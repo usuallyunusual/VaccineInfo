@@ -13,10 +13,11 @@ class Emailer:
     Presentation logic and emailing the receivers is defnied here
     """
 
-    def __init__(self, data, vaccine, receiver_emails):
+    def __init__(self, data, vaccine, receiver_emails, force_send):
         self.data = json.loads(data)
         self.vaccine = vaccine
         self.receiver_emails = receiver_emails
+        self.force_send = force_send
 
     def prepare_html(self, data, email, vaccine):
         """
@@ -107,10 +108,13 @@ class Emailer:
         :param vaccine: the vaccine to filter by
         :return:
         """
-        if self.data["updated"] == "no":
+        print(self.force_send)
+        if not self.force_send:
+            print(self.data["updated"])
             if self.data["updated"] == "no":
-                print("Email not sent")
-                return -1
+                if self.data["updated"] == "no":
+                    print("Email not sent")
+                    return -1
         messages = []
         for email in self.receiver_emails:
             html = self.prepare_html(self.data, email, self.vaccine)

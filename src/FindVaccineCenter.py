@@ -1,5 +1,5 @@
 import json
-
+import os
 
 
 class FindVaccineCenter:
@@ -7,9 +7,32 @@ class FindVaccineCenter:
     Queries the Cowin API to get required data
     """
 
-    def __init__(self, raw_json_data,vaccine):
+    def __init__(self, raw_json_data, vaccine):
         self.raw_json_data = raw_json_data
         self.vaccine = vaccine
+
+    def tag_updated(self, data):
+        """
+        Checks if last query gave same results and tags it "updates":yes or "updated":no
+        :param data: The queried data from API
+        :return:
+        """
+        last_call_file = os.path.dirname(os.path.realpath(__file__)) + "/last_call_" + self.vaccine.lower() + ".txt"
+        try:
+            with open(last_call_file, 'r') as last_call_data:
+                prev_data = json.loads(last_call_data.read())
+            if prev_data == data:
+                data["updated"] = "no"
+            else:
+                with open(last_call_file, "w") as last_call_data:
+                    last_call_data.write(json.dumps(data, indent=2))
+                    data["updated"] = "yes"
+            return data
+        except Exception as e:
+            with open(last_call_file, "w") as last_call_data:
+                last_call_data.write(json.dumps(data, indent=2))
+                data["updated"] = "yes"
+                return data
 
     def filter_results(self, response):
         """
@@ -51,6 +74,7 @@ class FindVaccineCenter:
         """
         if self.raw_json_data != -1:
             filtered_response = self.filter_results(self.raw_json_data)
-            return json.dumps(filtered_response, indent=2)
+            tagged_response = self.tag_updated(filtered_response)
+            return json.dumps(tagged_response, indent=2)
         else:
             return -1
