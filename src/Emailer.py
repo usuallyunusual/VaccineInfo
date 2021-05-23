@@ -139,7 +139,6 @@ class Emailer:
                 # print(sender_email, email, message)
                 server.sendmail(sender_email, email, message.as_string())
 
-
     def get_receiver_emails(self):
         """
         @ sDEPRECATED
