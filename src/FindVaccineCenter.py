@@ -22,16 +22,16 @@ class FindVaccineCenter:
             with open(last_call_file, 'r') as last_call_data:
                 prev_data = json.loads(last_call_data.read())
             if prev_data == data:
-                data["updated"] = "no"
+                data["updated"] = False
             else:
                 with open(last_call_file, "w") as last_call_data:
                     last_call_data.write(json.dumps(data, indent=2))
-                    data["updated"] = "yes"
+                    data["updated"] = True
             return data
         except Exception as e:
             with open(last_call_file, "w") as last_call_data:
                 last_call_data.write(json.dumps(data, indent=2))
-                data["updated"] = "yes"
+                data["updated"] = True
                 return data
 
     def filter_results(self, response):

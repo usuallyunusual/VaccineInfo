@@ -111,10 +111,9 @@ class Emailer:
         print(self.force_send)
         if not self.force_send:
             print(self.data["updated"])
-            if self.data["updated"] == "no":
-                if self.data["updated"] == "no":
-                    print("Email not sent")
-                    return -1
+            if not self.data["updated"]:
+                print("Email not sent")
+                return -1
         messages = []
         for email in self.receiver_emails:
             html = self.prepare_html(self.data, email, self.vaccine)
