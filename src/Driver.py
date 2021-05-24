@@ -16,13 +16,22 @@ class Driver:
     def __init__(self):
         self.logger = Logging().get_logger()
 
+    def get_query_cowin(self, district_id):
+        """
+        Getter method to instantiate an object of QueryCowin class and return this new object
+        """
+        return QueryCowin(district_id)
+
     def run(self, force_send):
         """
         Calls everything. Execution starts here
         :return: -1 or 1 (supposed to)
         """
         self.logger.debug(f"Force-send flag is {force_send}")
-        raw_json_data = QueryCowin("294").get_json_data()
+        query_cowin_obj = self.get_query_cowin("294")
+        raw_json_data = query_cowin_obj.get_json_data()
+        if raw_json_data == -1:
+            return -1
         receiver_config = self.get_receivers_configs()
         if receiver_config == -1:
             return -1

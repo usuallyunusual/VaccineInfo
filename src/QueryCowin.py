@@ -1,7 +1,7 @@
 from datetime import datetime, date
 import requests
 import json
-from Logging import Logging
+from src.Logging import Logging
 
 
 class QueryCowin:
@@ -18,7 +18,7 @@ class QueryCowin:
 
     def get_json_data(self):
         """
-        Queries the Cowin API and returns the JSON response.
+        Queries the Cowin API and returns the JSON response as a dict
         Everything to do with the request params and exception catching is done here
         :return: JSON obj
         """

@@ -2,6 +2,7 @@ import json
 import os
 from Logging import Logging
 
+
 class FindVaccineCenter:
     """
     Provides functions to filter the COWIN API response
