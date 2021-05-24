@@ -1,9 +1,12 @@
 import yaml
-
 from CombinedResponse import CombinedResponse
 from Emailer import Emailer
 import os
 from QueryCowin import QueryCowin
+import argparse
+from Logging import Logging
+import time
+
 
 class Driver:
     """
@@ -11,19 +14,32 @@ class Driver:
     """
 
     def __init__(self):
-        pass
+        self.logger = Logging().get_logger()
 
-    def run(self):
+    def get_query_cowin(self, district_id):
+        """
+        Getter method to instantiate an object of QueryCowin class and return this new object
+        """
+        return QueryCowin(district_id)
+
+    def run(self, force_send):
         """
         Calls everything. Execution starts here
-        :return: -1 or 1
+        :return: -1 or 1 (supposed to)
         """
-        raw_json_data = QueryCowin("294").get_json_data()
+        self.logger.debug(f"Force-send flag is {force_send}")
+        query_cowin_obj = self.get_query_cowin("294")
+        raw_json_data = query_cowin_obj.get_json_data()
+        if raw_json_data == -1:
+            return -1
         receiver_config = self.get_receivers_configs()
+        if receiver_config == -1:
+            return -1
         for vaccine in receiver_config:
+            self.logger.debug(f"Vaccine : {vaccine.upper()}")
             responsecombiner = CombinedResponse(raw_json_data, vaccine, "Karnataka")
             combined_data = responsecombiner.get_combined_response()
-            Emailer(combined_data, vaccine, receiver_config[vaccine]).send_vaccine_info()
+            Emailer(combined_data, vaccine, receiver_config[vaccine], force_send).send_vaccine_info()
 
     def get_script_path(self):
         """
@@ -33,12 +49,27 @@ class Driver:
 
     def get_receivers_configs(self):
         """
-        Reads the reciever emails along with their configs
+        Reads the receiver emails along with their configs
         """
-        with open(self.get_script_path() + "/receiver_config.yaml") as receiver_config:
-            return yaml.load(receiver_config.read(), Loader=yaml.FullLoader)
-
+        try:
+            with open(self.get_script_path() + "/receiver_config.yaml") as receiver_config:
+                self.logger.debug("Reading Receiver config")
+                return yaml.load(receiver_config.read(), Loader=yaml.FullLoader)
+        except Exception as e:
+            self.logger.error(f"Error occurred : {e}")
+            return -1
 
 
 if __name__ == "__main__":
-    Driver().run()
+    # TODO : Update the description
+    parser = argparse.ArgumentParser(description='Send email to an email list')
+    parser.add_argument('-f', '--force-send', help="Force send the email irrespective of the same API response",
+                        action='store_true')
+    args = parser.parse_args()
+    if args.force_send:
+        Driver().run(True)
+    else:
+        print("Process is going to keep running. Press CTRL + C to quit")
+        while True:
+            Driver().run(False)
+            time.sleep(180)

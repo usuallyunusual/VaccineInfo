@@ -4,30 +4,39 @@ from io import StringIO
 
 import pandas as pd
 import requests
+from Logging import Logging
 
 
 class CaseStats:
     """
     Provides methods to calculate delta values and query current case load of Covid in India
+    TODO : Move/merge this class with Vaccine stats. Both receiver very similar responses and use very similar methods to filter.
     """
     populations = {"Karnataka": 65798000, "India": 1370000000}
 
     def __init__(self, state):
+        """
+        State (str) to filter to case reponse by.
+        """
+        self.logger = Logging().get_logger()
         self.state = state
 
     def query_api(self):
         """
+        TODO : Move this to a separate class
         Queries the API and returns the CSV file
         :return: Returns a pandas dataframe
         """
         try:
-            data = requests.get("https://api.covid19india.org/csv/latest/states.csv")
+            url = "https://api.covid19india.org/csv/latest/states.csv"
+            data = requests.get(url)
+            self.logger.debug(f"Queried {url} with response code : {data.status_code}")
             if data.status_code != 200:
                 raise Exception("Bas status code", data.status_code)
             dataframe = pd.read_csv(StringIO(data.text))
             return dataframe
         except Exception as e:
-            print(e)
+            self.logger.error(f"Error occurred : {e}")
 
     def filter_state(self, dataframe, state):
         """
@@ -96,5 +105,4 @@ class CaseStats:
         final_response[self.state] = self.get_stats(filtered_dataframe, self.state)
         filtered_dataframe = self.filter_state(dataframe, "India")
         final_response["India"] = self.get_stats(filtered_dataframe, "India")
-        # print(self.get_stats(filtered_dataframe, "India"))
         return json.dumps(final_response, indent=2)

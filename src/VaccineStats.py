@@ -4,6 +4,7 @@ from io import StringIO
 
 import pandas as pd
 import requests
+from Logging import Logging
 
 
 class VaccineStats:
@@ -13,21 +14,28 @@ class VaccineStats:
     populations = {"Karnataka": 65798000, "India": 1370000000}
 
     def __init__(self, state):
+        """
+        State (str) to filter information from the json response.
+        """
+        self.logger = Logging().get_logger()
         self.state = state
 
     def query_api(self):
         """
+        TODO : Move this to another class
         Queries the API and returns the CSV file
         :return: Returns a pandas dataframe
         """
         try:
-            data = requests.get("http://api.covid19india.org/csv/latest/cowin_vaccine_data_statewise.csv")
+            url = "http://api.covid19india.org/csv/latest/cowin_vaccine_data_statewise.csv"
+            data = requests.get(url)
+            self.logger.debug(f"Queried {url} with response code : {data.status_code}")
             if data.status_code != 200:
                 raise Exception("Bas status code", data.status_code)
             dataframe = pd.read_csv(StringIO(data.text))
             return dataframe
         except Exception as e:
-            print(e)
+            self.logger.error(f"Error occurred :  {e}")
 
     def filter_state(self, dataframe, state):
         """
