@@ -1,13 +1,18 @@
 import json
 import os
-
+from Logging import Logging
 
 class FindVaccineCenter:
     """
-    Queries the Cowin API to get required data
+    Provides functions to filter the COWIN API response
+    for preferred vaccines and availability
     """
 
     def __init__(self, raw_json_data, vaccine):
+        """
+        The raw json response and the preferred vaccine as string
+        """
+        self.logger = Logging().get_logger()
         self.raw_json_data = raw_json_data
         self.vaccine = vaccine
 
@@ -22,14 +27,18 @@ class FindVaccineCenter:
             with open(last_call_file, 'r') as last_call_data:
                 prev_data = json.loads(last_call_data.read())
             if prev_data == data:
+                self.logger.debug("Received same response from call. Updated tag set to False")
                 data["updated"] = False
             else:
                 with open(last_call_file, "w") as last_call_data:
+                    self.logger.debug("Received different response from call.")
                     last_call_data.write(json.dumps(data, indent=2))
                     data["updated"] = True
+                    self.logger.debug(f"New response written to file : {last_call_file},  Updated tag set to True")
             return data
         except Exception as e:
             with open(last_call_file, "w") as last_call_data:
+                self.logger.debug(f"Exception : {e}. Writing response to file. Updated tag set to True")
                 last_call_data.write(json.dumps(data, indent=2))
                 data["updated"] = True
                 return data

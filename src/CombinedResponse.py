@@ -3,7 +3,7 @@ import json
 from FindVaccineCenter import FindVaccineCenter
 from VaccineStats import VaccineStats
 from CaseStats import CaseStats
-import os
+from Logging import Logging
 
 
 class CombinedResponse:
@@ -13,6 +13,12 @@ class CombinedResponse:
     """
 
     def __init__(self, raw_json_data, vaccine, state):
+        """
+        The raw json data to send for filtering, the vaccine to filter by and the state to filter by
+        TODO : Move this
+        to Driver class. That should handle all configurations. THis should only receiver configured classes
+        """
+        self.logger = Logging().get_logger()
         self.raw_json_data = raw_json_data
         self.vaccine = vaccine
         self.state = state
@@ -23,6 +29,7 @@ class CombinedResponse:
         :return: JSON obj of combines response
         """
         [vaccine_centers, vaccine_stats, case_stats] = self.get_individual_responses()
+        self.logger.debug("Received all of the individual responses")
         vaccine_centers["Vaccine_Stats"] = vaccine_stats
         vaccine_centers["Case_Stats"] = case_stats
         return json.dumps(vaccine_centers, indent=2)

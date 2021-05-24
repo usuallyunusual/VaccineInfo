@@ -4,7 +4,7 @@ import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
-
+from Logging import Logging
 import yaml
 
 
@@ -14,6 +14,10 @@ class Emailer:
     """
 
     def __init__(self, data, vaccine, receiver_emails, force_send):
+        """
+        data: the json data (combined), the vaccine filtered by, the list of receiver emails and force send flag
+        """
+        self.logger = Logging().get_logger()
         self.data = json.loads(data)
         self.vaccine = vaccine
         self.receiver_emails = receiver_emails
@@ -21,6 +25,7 @@ class Emailer:
 
     def prepare_html(self, data, email, vaccine):
         """
+        TODO : Split function into two. Rn it's a big mess of string manipulation. Is there a library for this
         Prepares and returns a string containing the data inside html elements
         :param email: Receiver email
         :param vaccine: preferred vaccine (filtered by this vaccine)
@@ -99,6 +104,7 @@ class Emailer:
         # According to RFC 2046, the last part of a multipart message, in this case
         # the HTML message, is best and preferred.
         message.attach(part)
+        self.logger.debug(f"Prepared message for : {email}")
         return message
 
     def send_vaccine_info(self):
@@ -108,11 +114,9 @@ class Emailer:
         :param vaccine: the vaccine to filter by
         :return:
         """
-        print(self.force_send)
         if not self.force_send:
-            print(self.data["updated"])
             if not self.data["updated"]:
-                print("Email not sent")
+                self.logger.debug(f"Force send flag set to : {self.force_send}, Email not sent")
                 return -1
         messages = []
         for email in self.receiver_emails:
@@ -138,20 +142,29 @@ class Emailer:
             for email, message in zip(receiver_email, messages):
                 # print(sender_email, email, message)
                 server.sendmail(sender_email, email, message.as_string())
+                self.logger.debug(f"Sent email to {email}")
 
     def get_receiver_emails(self):
         """
-        @ sDEPRECATED
+        @ DEPRECATED
         Retrieves the receiver emails from YAML config
         :return: List of emails
         """
-        with open("emails.yaml", "r") as email_config:
-            return yaml.load(email_config.read(), Loader=yaml.FullLoader)
+        try:
+            with open("emails.yaml", "r") as email_config:
+                self.logger.debug("Reading email list")
+                return yaml.load(email_config.read(), Loader=yaml.FullLoader)
+        except Exception as e:
+            self.logger.debug(f"Error occurred : {e}")
 
     def get_email_credentials(self):
         """
         Retrieves the credentials from YAML file
         :return: List of email and pass
         """
-        with open(os.path.dirname(os.path.realpath(__file__)) + "/email_cred.yaml", "r") as email_config:
-            return yaml.load(email_config.read(), Loader=yaml.FullLoader)
+        try:
+            with open(os.path.dirname(os.path.realpath(__file__)) + "/email_cred.yaml", "r") as email_config:
+                self.logger.debug("Reading email credentials")
+                return yaml.load(email_config.read(), Loader=yaml.FullLoader)
+        except Exception as e:
+            self.logger.debug(f"Error occurred : {e}")

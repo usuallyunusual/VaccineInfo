@@ -5,6 +5,7 @@ from Emailer import Emailer
 import os
 from QueryCowin import QueryCowin
 import argparse
+from Logging import Logging
 
 
 class Driver:
@@ -13,16 +14,20 @@ class Driver:
     """
 
     def __init__(self):
-        pass
+        self.logger = Logging().get_logger()
 
     def run(self, force_send):
         """
         Calls everything. Execution starts here
-        :return: -1 or 1
+        :return: -1 or 1 (supposed to)
         """
+        self.logger.debug(f"Force-send flag is {force_send}")
         raw_json_data = QueryCowin("294").get_json_data()
         receiver_config = self.get_receivers_configs()
+        if receiver_config == -1:
+            return -1
         for vaccine in receiver_config:
+            self.logger.debug(f"Vaccine : {vaccine.upper()}")
             responsecombiner = CombinedResponse(raw_json_data, vaccine, "Karnataka")
             combined_data = responsecombiner.get_combined_response()
             Emailer(combined_data, vaccine, receiver_config[vaccine], force_send).send_vaccine_info()
@@ -35,10 +40,15 @@ class Driver:
 
     def get_receivers_configs(self):
         """
-        Reads the reciever emails along with their configs
+        Reads the receiver emails along with their configs
         """
-        with open(self.get_script_path() + "/receiver_config.yaml") as receiver_config:
-            return yaml.load(receiver_config.read(), Loader=yaml.FullLoader)
+        try:
+            with open(self.get_script_path() + "/receiver_config.yaml") as receiver_config:
+                self.logger.debug("Reading Receiver config")
+                return yaml.load(receiver_config.read(), Loader=yaml.FullLoader)
+        except Exception as e:
+            self.logger.error(f"Error occurred : {e}")
+            return -1
 
 
 if __name__ == "__main__":
