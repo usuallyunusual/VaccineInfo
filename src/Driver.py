@@ -1,11 +1,11 @@
 import yaml
-
 from CombinedResponse import CombinedResponse
 from Emailer import Emailer
 import os
 from QueryCowin import QueryCowin
 import argparse
 from Logging import Logging
+import time
 
 
 class Driver:
@@ -60,4 +60,7 @@ if __name__ == "__main__":
     if args.force_send:
         Driver().run(True)
     else:
-        Driver().run(False)
+        print("Process is going to keep running. Press CTRL + C to quit")
+        while True:
+            Driver().run(False)
+            time.sleep(180)
