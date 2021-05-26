@@ -40,7 +40,7 @@ class CovidCaseStatsRetriever:
         """
         Returns the url based on the data parameter
         """
-        if self.data.lower() is "vaccine":
+        if self.data.lower() == "vaccine":
             return f"{self.base_url}/cowin_vaccine_data_statewise.csv"
         else:
             return f"{self.base_url}/states.csv"
