@@ -1,11 +1,15 @@
 import yaml
-from CombinedResponse import CombinedResponse
+from src.Combiner.CombinedResponse import CombinedResponse
 from Emailer import Emailer
 import os
-from QueryCowin import QueryCowin
+from src.Retriever.CowinRetriever import CowinRetriever
 import argparse
-from Logging import Logging
+from src.Logging import Logging
 import time
+from src.Retriever.CovidStatsRetrieverCSV import CovidCaseStatsRetriever
+from src.Filter.FilterVaccineCenter import FilterVaccineCenter
+from src.Filter.FilterCaseStats import FilterCaseStats
+from src.Filter.FilterVaccineStats import FilterVaccineStats
 
 
 class Driver:
@@ -20,16 +24,40 @@ class Driver:
         """
         Getter method to instantiate an object of QueryCowin class and return this new object
         """
-        return QueryCowin(district_id)
+        return CowinRetriever(district_id)
+
+    def get_filtervaccinecenter_obj(self, raw_json_data, vaccine):
+        """
+        Returns obj of findVaccineCenter class with parameters supplied
+        :return: FindVaccineCenter object
+        """
+        return FilterVaccineCenter(raw_json_data, vaccine)
+
+    def get_filtervaccinestats_obj(self, state):
+        """
+        Returns obj of VaccineStats class with parameters supplied
+        :return: VaccineStats object
+        """
+        return FilterVaccineStats(state)
+
+    def get_filtercasestats_obj(self, state):
+        """
+        Returns obj of CaseStats class with parameters supplied
+        :return: VaccineStats object
+        """
+        return FilterCaseStats(state)
 
     def run(self, force_send):
         """
         Calls everything. Execution starts here
         :return: -1 or 1 (supposed to)
         """
+        self.state = "Karnataka"
         self.logger.debug(f"Force-send flag is {force_send}")
         query_cowin_obj = self.get_query_cowin("294")
         raw_json_data = query_cowin_obj.get_json_data()
+        vaccine_df = self.get_filtervaccinestats_obj(self.state)
+        cases_df = self.get_filtercasestats_obj(self.state)
         if raw_json_data == -1:
             return -1
         receiver_config = self.get_receivers_configs()

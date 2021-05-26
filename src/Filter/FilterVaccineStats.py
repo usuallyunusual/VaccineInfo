@@ -1,42 +1,22 @@
 import json
 from datetime import date, timedelta
-from io import StringIO
 
-import pandas as pd
-import requests
-from Logging import Logging
+from src.Logging import Logging
 
 
-class CaseStats:
+class FilterVaccineStats:
     """
-    Provides methods to calculate delta values and query current case load of Covid in India
-    TODO : Move/merge this class with Vaccine stats. Both receiver very similar responses and use very similar methods to filter.
+    Class provides methods to get data about the number of vaccines administered
     """
     populations = {"Karnataka": 65798000, "India": 1370000000}
 
-    def __init__(self, state):
+    def __init__(self, state, vaccine_df):
         """
-        State (str) to filter to case reponse by.
+        State (str) to filter information from the json response.
         """
         self.logger = Logging().get_logger()
         self.state = state
-
-    def query_api(self):
-        """
-        TODO : Move this to a separate class
-        Queries the API and returns the CSV file
-        :return: Returns a pandas dataframe
-        """
-        try:
-            url = "https://api.covid19india.org/csv/latest/states.csv"
-            data = requests.get(url)
-            self.logger.debug(f"Queried {url} with response code : {data.status_code}")
-            if data.status_code != 200:
-                raise Exception("Bas status code", data.status_code)
-            dataframe = pd.read_csv(StringIO(data.text))
-            return dataframe
-        except Exception as e:
-            self.logger.error(f"Error occurred : {e}")
+        self.vaccine_df = vaccine_df
 
     def filter_state(self, dataframe, state):
         """
@@ -51,13 +31,11 @@ class CaseStats:
         daybefore = yesterday - timedelta(days=1)
         data = []
         for dates in [yesterday, daybefore]:
-            dataframe_filtered = dataframe[dataframe["Date"] == dates.strftime("%Y-%m-%d")]
+            dataframe_filtered = dataframe[dataframe["Updated On"] == dates.strftime("%d/%m/%Y")]
             dataframe_filtered = dataframe_filtered[
-                ["Confirmed", "Recovered", "Deceased",
-                 "Other"]]
+                ["First Dose Administered", "Second Dose Administered", "Total Covaxin Administered",
+                 "Total CoviShield Administered", "Total Doses Administered"]]
             dataframe_filtered = dataframe_filtered.fillna(0)
-            dataframe_filtered["Active"] = dataframe_filtered["Confirmed"] - (
-                    dataframe_filtered["Recovered"] + dataframe_filtered["Deceased"] + dataframe_filtered["Other"])
             dataframe_filtered = dataframe_filtered.iloc[-1]
             data.append(dataframe_filtered)
         return data
@@ -87,22 +65,20 @@ class CaseStats:
         """
         data = {}
         for i, col in zip(range(5), datalist[0].items()):
-            [diff, per_diff, tot_percentage] = self.get_diff_and_percentage(int(datalist[0].iloc[i]),
-                                                                            int(datalist[1].iloc[i]),
+            [diff, per_diff, tot_percentage] = self.get_diff_and_percentage(datalist[0].iloc[i], datalist[1].iloc[i],
                                                                             state)
-            data[col[0]] = {"value": int(datalist[0].iloc[i]), "change": diff, "change_per": per_diff,
+            data[col[0]] = {"value": datalist[0].iloc[i], "change": diff, "change_per": per_diff,
                             "tot_percentage": tot_percentage}
         return data
 
-    def get_case_stats(self):
+    def get_vaccine_stats(self):
         """
         Interface to external classes. Calls all internal classes and returns required metrics
         :return: JSON obj with required metrics
         """
         final_response = {}
-        dataframe = self.query_api()
-        filtered_dataframe = self.filter_state(dataframe, self.state)
+        filtered_dataframe = self.filter_state(self.vaccine_df, self.state)
         final_response[self.state] = self.get_stats(filtered_dataframe, self.state)
-        filtered_dataframe = self.filter_state(dataframe, "India")
+        filtered_dataframe = self.filter_state(self.vaccine_df, "India")
         final_response["India"] = self.get_stats(filtered_dataframe, "India")
         return json.dumps(final_response, indent=2)

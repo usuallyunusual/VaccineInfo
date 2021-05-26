@@ -4,7 +4,7 @@ import json
 from src.Logging import Logging
 
 
-class QueryCowin:
+class CowinRetriever:
     """
     Class provides methods to query Cowin endpoint and return Json data
     """

@@ -1,9 +1,9 @@
 import json
 import os
-from Logging import Logging
+from src.Logging import Logging
 
 
-class FindVaccineCenter:
+class FilterVaccineCenter:
     """
     Provides functions to filter the COWIN API response
     for preferred vaccines and availability
@@ -76,7 +76,7 @@ class FindVaccineCenter:
         filtered_responses = {"centers": filtered_responses}
         return filtered_responses
 
-    def get_data(self):
+    def get_filtered_data(self):
         """
         The main interface used by external entities, Calls the other methods in class
         filters the results and returns a json object of filtered results

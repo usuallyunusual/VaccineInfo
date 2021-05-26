@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from src.QueryCowin import QueryCowin
+from src.Retriever.CowinRetriever import QueryCowin
 
 
 class TestQueryCowin(unittest.TestCase):
