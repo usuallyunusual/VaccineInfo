@@ -51,7 +51,7 @@ class BaseFilterEntityStats:
         :return: json object containing original data tagged with stats
         """
         data = {}
-        for i, col in zip(range(5), datalist[0].items()):
+        for i, col in enumerate(datalist[0].items()):
             [diff, per_diff, tot_percentage] = self.get_diff_and_percentage(int(datalist[0].iloc[i]),
                                                                             int(datalist[1].iloc[i]),
                                                                             state)

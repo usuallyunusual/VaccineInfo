@@ -5,6 +5,7 @@ from src.Retriever.CovidStatsRetrieverCSV import CovidCaseStatsRetriever
 from tests.Retriever.RetrieverTestResources import RetrieverTestResources
 import pandas as pd
 
+
 class TestCovidStatsRetriever(unittest.TestCase):
     """
     Test suite for the class CovidStatsRetriever
@@ -39,10 +40,10 @@ class TestCovidStatsRetriever(unittest.TestCase):
         Tests whether method query url gives the right url's
         """
         url = CovidCaseStatsRetriever("something").get_query_url()
-        self.assertEqual(RetrieverTestResources.covid_url_cases,url)
+        self.assertEqual(RetrieverTestResources.covid_url_cases, url)
 
         url = CovidCaseStatsRetriever("vaccine").get_query_url()
-        self.assertEqual(RetrieverTestResources.covid_url_vaccine,url)
+        self.assertEqual(RetrieverTestResources.covid_url_vaccine, url)
 
         url = CovidCaseStatsRetriever("VaCcIne").get_query_url()
         self.assertEqual(RetrieverTestResources.covid_url_vaccine, url)
